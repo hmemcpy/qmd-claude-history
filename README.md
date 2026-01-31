@@ -21,30 +21,35 @@ Converts Claude's JSONL conversation history into searchable Markdown collection
 
 ## Installation
 
-### Quick Install
+### Quick Install (Recommended)
+
+Run the interactive installer directly with npx:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hmemcpy/qmd-claude-history/main/install.sh | bash
+npx tsx https://raw.githubusercontent.com/hmemcpy/qmd-claude-history/main/install.ts
 ```
 
-The installer runs in **4 steps**:
-1. **Prerequisites check** - Verifies Bun, QMD, and jq are installed
-2. **Skill installation** - Installs the qmd-claude-history skill
-3. **LaunchAgent setup** - Configures automatic updates every 30 minutes
-4. **CLAUDE.md configuration** (optional) - Adds skill activation directive to your global CLAUDE.md
-
-**Note on Step 4:** The installer will show you a preview of the text to be added to `~/.claude/CLAUDE.md` and ask for confirmation. This step is **optional but recommended** - it enables automatic skill activation when you ask about past work. You can:
-- **Yes** - Add the directive (recommended)
-- **No** - Skip this step (you'll need to manually activate the skill)
-- **View** - See the full text before deciding
-
-### Manual Install
+Or clone and run locally:
 
 ```bash
 git clone https://github.com/hmemcpy/qmd-claude-history.git
 cd qmd-claude-history
-./install.sh
+npm install
+npm start
 ```
+
+The installer features a modern TUI with:
+- **Auto-detection** of installed AI assistants (Claude Code, Amp, Opencode)
+- **Multiselect** - Choose which assistants to configure
+- **Progress indicators** - Visual feedback during installation
+- **Prerequisites check** - Verifies Bun, QMD, and jq are installed
+
+### What Gets Installed
+
+1. **Converter script** - Converts conversation history to Markdown
+2. **Skill files** - For automatic history search
+3. **LaunchAgent** - Auto-updates every 30 minutes (macOS)
+4. **AI assistant configuration** - Optional auto-activation setup
 
 ### Prerequisites
 
@@ -216,19 +221,25 @@ convert-claude-history.sh
 
 ## Uninstall
 
-```bash
-./uninstall.sh
-```
-
-Or manually:
+To remove the installation:
 
 ```bash
+# Stop and remove LaunchAgent
 launchctl unload ~/Library/LaunchAgents/com.user.qmd-claude-history.plist
 rm ~/Library/LaunchAgents/com.user.qmd-claude-history.plist
+
+# Remove converter script
 rm ~/.local/bin/convert-claude-history.sh
+
+# Remove skill
 rm -rf ~/.claude/skills/qmd-claude-history
+
 # Optional: remove converted history
 rm -rf ~/.claude/converted-history
+
+# Optional: remove QMD collections
+qmd collection list  # see what's installed
+qmd collection remove <name>  # remove specific collections
 ```
 
 ## License
