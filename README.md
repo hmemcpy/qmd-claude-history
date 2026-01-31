@@ -1,6 +1,10 @@
 # QMD Claude History
 
-Automatic indexing and search for Claude Code conversation history using QMD.
+Automatic indexing and search for Claude Code conversation history using [QMD](https://github.com/tobi/qmd).
+
+![Skill Activation Example](image.png)
+
+*Just ask about past work and Claude automatically searches your conversation history*
 
 ## What This Does
 
@@ -87,10 +91,6 @@ The skill activates when you ask things like:
 - "How did I implement X?"
 - "Remind me about the Y project"
 - "What was our approach to Z?"
-
-![Skill Activation Example](image.png)
-
-*Example: Claude automatically activates the qmd-claude-history skill and searches conversation history when asked about past work*
 
 ### Manual Search
 
