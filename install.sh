@@ -124,6 +124,12 @@ for project_dir in ~/.claude/projects/*; do
     continue
   fi
 
+  # Skip agent worktrees (Ralph Wiggum sub-agents)
+  if [[ "$cwd" == *".ralphy-worktrees"* ]] || [[ "$cwd" == *"/agent-"* ]]; then
+    echo "  Skipping agent worktree: $cwd"
+    continue
+  fi
+
   # Get project name from cwd (e.g., /Users/hmemcpy/git/clair -> clair)
   project_name=$(basename "$cwd")
 
@@ -316,7 +322,7 @@ The convention is:
 
 **Claude:**
 1. Search: `/qmd scream time app implementation --collection claude-plans`
-2. Get full plan if needed: `qmd get #58167c` (from search results)
+2. Get full plan if needed: `qmd get "#58167c"` (from search results - note: quote the docid to prevent shell interpretation)
 3. Answer with details from the plan
 
 **User:** "How did we handle sandbox integration?"
@@ -354,7 +360,7 @@ convert-claude-history.sh && qmd update && qmd embed
 | `/qmd <query>` | BM25 keyword search (fast) |
 | `/qmd <query> --semantic` | Vector semantic search (conceptual) |
 | `qmd query "<query>"` | Hybrid + reranking (best quality) |
-| `qmd get #<docid>` | Retrieve full document |
+| `qmd get "#<docid>"` | Retrieve full document (quote the docid) |
 | `qmd status` | Show collections and index status |
 | `qmd collection list` | List all collections |
 
