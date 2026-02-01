@@ -53,7 +53,10 @@ for project_dir in ~/.claude/projects/*; do
     session_slug=$(echo "$first_line" | jq -r '.slug // "unknown"')
     session_date=$(echo "$first_line" | jq -r '.timestamp[0:10] // empty')
     [[ -z "$session_date" ]] && session_date=$(date +%Y-%m-%d)
-    md_file="$project_convert_dir/\${session_date}-\${session_slug}.md"
+    # Use session_id (first 8 chars) for unique filenames since slug is often null
+    short_id="\${session_id:0:8}"
+    [[ -z "$short_id" ]] && short_id=$(basename "$jsonl" .jsonl | cut -c1-8)
+    md_file="$project_convert_dir/\${session_date}-\${short_id}.md"
     [[ "$DRY_RUN" == true ]] && { echo "  Would convert: $(basename "$jsonl") -> $(basename "$md_file")"; continue; }
     {
       echo "# Claude Session: $session_slug"
