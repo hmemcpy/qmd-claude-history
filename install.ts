@@ -443,12 +443,12 @@ function runConverter(): string {
   }
 }
 
-function createQmdCollections(): { created: number; skipped: number } {
+function createQmdCollections(): { created: number; recreated: number } {
   let created = 0;
-  let skipped = 0;
+  let recreated = 0;
 
   if (!existsSync(CONVERT_DIR)) {
-    return { created, skipped };
+    return { created, recreated };
   }
 
   const projects = readdirSync(CONVERT_DIR).filter(f =>
@@ -459,28 +459,38 @@ function createQmdCollections(): { created: number; skipped: number } {
   let existingCollections: string[] = [];
   try {
     const result = execSync('qmd collection list', { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-    existingCollections = result.split('\n').filter(Boolean);
+    // Parse collection names from formatted output like "claude-foo-conversations (qmd://...)"
+    existingCollections = result.split('\n')
+      .map(line => line.match(/^(claude-\S+-conversations)\s+\(/)?.[1])
+      .filter((name): name is string => !!name);
   } catch {}
 
   for (const project of projects) {
     const collectionName = `claude-${project}-conversations`;
     const projectPath = path.join(CONVERT_DIR, project);
 
-    if (existingCollections.includes(collectionName)) {
-      skipped++;
-      continue;
-    }
+    const exists = existingCollections.includes(collectionName);
 
     try {
+      // Remove existing collection before recreating
+      if (exists) {
+        execSync(`qmd collection remove "${collectionName}"`, { stdio: 'pipe' });
+      }
+
       execSync(`qmd collection add "${projectPath}" --name "${collectionName}"`, { stdio: 'pipe' });
       execSync(`qmd context add "qmd://${collectionName}/" "Claude conversation history for ${project} project"`, { stdio: 'pipe' });
-      created++;
+
+      if (exists) {
+        recreated++;
+      } else {
+        created++;
+      }
     } catch {
       // Collection creation may fail, continue
     }
   }
 
-  return { created, skipped };
+  return { created, recreated };
 }
 
 function generateEmbeddings(): void {
@@ -685,8 +695,11 @@ async function main() {
   // Step 6: Create QMD collections
   spinner = ora('Creating QMD collections').start();
   try {
-    const { created, skipped } = createQmdCollections();
-    spinner.succeed(`Created ${created} collections (${skipped} already existed)`);
+    const { created, recreated } = createQmdCollections();
+    const parts = [];
+    if (created > 0) parts.push(`${created} created`);
+    if (recreated > 0) parts.push(`${recreated} recreated`);
+    spinner.succeed(parts.length > 0 ? parts.join(', ') : 'No collections to process');
   } catch (err: any) {
     spinner.warn(`Collection creation completed with warnings`);
   }
